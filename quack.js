@@ -37,28 +37,28 @@ function getDuckToLay(ducks) {
 
 async function collectFromList(token, ua, listNests, listDucks) {
   if (listNests.length === 0) return console.clear(), harvestAllEgg();
-  // if (listNests.length === 0) return harvestAllEgg();
-  // console.log(listNests.length, listDucks.length);
 
-  const { data } = await collectEgg(token, ua, listNests[0].id);
-  // console.log(data);
-  if (data) {
-    const duck = getDuckToLay(listDucks);
-    await layEgg(token, ua, listNests[0].id, duck.id);
-    console.log(`Da thu hoach [ NEST 🌕 ${listNests[0].id} ]`);
-
-    wallets.forEach((w) => {
-      if (w.symbol === "EGG 🥚") w.balance = Number(w.balance) + 1;
-    });
-
-    eggs++;
-    listNests.shift();
-    listDucks = listDucks.filter((d) => d.id !== duck.id);
-    // console.log(listNests.length, listDucks.length);
-
-    await sleep(config.sleepTime);
-    collectFromList(token, ua, listNests, listDucks);
+  const response = await collectEgg(token, ua, listNests[0].id);
+  if (!response || !response.data) {
+    console.log("collectEgg không trả về dữ liệu hợp lệ.");
+    return;
   }
+
+  const { data } = response;
+  const duck = getDuckToLay(listDucks);
+  await layEgg(token, ua, listNests[0].id, duck.id);
+  console.log(`Da thu hoach [ NEST 🌕 ${listNests[0].id} ]`);
+
+  wallets.forEach((w) => {
+    if (w.symbol === "EGG 🥚") w.balance = Number(w.balance) + 1;
+  });
+
+  eggs++;
+  listNests.shift();
+  listDucks = listDucks.filter((d) => d.id !== duck.id);
+
+  await sleep(config.sleepTime);
+  collectFromList(token, ua, listNests, listDucks);
 }
 
 async function harvestAllEgg() {
